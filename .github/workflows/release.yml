@@ -1,4 +1,4 @@
-name: release
+name: Release package
 
 on:
   push:
@@ -13,6 +13,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   dryrun:
     if: ${{ github.ref != 'refs/heads/main' || github.event.inputs.release != 'release' }}
@@ -22,7 +25,9 @@ jobs:
       id-token: write
     steps:
       - name: 🏗 Setup repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: 🏗 Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -52,7 +57,9 @@ jobs:
       id-token: write
     steps:
       - name: 🏗 Setup repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: 🏗 Setup Bun
         uses: oven-sh/setup-bun@v2
