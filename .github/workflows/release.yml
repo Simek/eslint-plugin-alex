@@ -1,0 +1,75 @@
+name: release
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      release:
+        description: 'Type "release" to create the release (`main` branch only)!'
+        required: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dryrun:
+    if: ${{ github.ref != 'refs/heads/main' || github.event.inputs.release != 'release' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v5
+
+      - name: 🏗 Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: 🏗 Setup Node for semantic-release
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: 📦 Install dependencies
+        run: bun install
+
+      - name: 🗃️️ Run prepublish steps
+        run: bun prepublish
+
+      - name: 📋 Release new version
+        run: bun semantic-release --dry-run
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  create:
+    if: ${{ github.ref == 'refs/heads/main' && github.event.inputs.release == 'release' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v5
+
+      - name: 🏗 Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: 🏗 Setup Node for semantic-release
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: 📦 Install dependencies
+        run: bun install
+
+      - name: 🗃️️ Run prepublish steps
+        run: bun prepublish
+
+      - name: 📋 Release new version
+        run: bun semantic-release
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
