@@ -40,8 +40,8 @@ function isIgnoredFile(filePath: string, patterns?: string[]): boolean {
 }
 
 function runAlexText(text: string, filePath: string, alexOptions?: AlexOptions) {
-  const result = alexText({ value: text, path: filePath }, alexOptions);
-  return result.messages;
+  const { messages } = alexText({ value: text, path: filePath }, alexOptions);
+  return messages;
 }
 
 export const noProblematicLanguageRule: Rule.RuleModule = {
@@ -49,7 +49,7 @@ export const noProblematicLanguageRule: Rule.RuleModule = {
     type: 'suggestion',
     docs: {
       description: 'Report potentially insensitive language in content, comments and strings using alex.',
-      recommended: false
+      recommended: true
     },
     schema: [
       {
@@ -73,10 +73,10 @@ export const noProblematicLanguageRule: Rule.RuleModule = {
   },
 
   create(context) {
-    const filename = normalize(context.filename).replaceAll('\\\\', '/').replaceAll('\\', '/');
+    const filename = toPosix(context.filename);
     const extension = extname(filename);
 
-    const opts: Options[0] = {
+    const opts: Options[number] = {
       ...defaultOptions,
       ...(context.options?.[0] ?? {})
     };
@@ -89,21 +89,21 @@ export const noProblematicLanguageRule: Rule.RuleModule = {
       if (!text || !text.trim()) return;
 
       const messages = runAlexText(text, filename, opts.alexOptions);
-      for (const message of messages) {
-        if (!message.position) continue;
+      for (const { reason, position } of messages) {
+        if (!position) continue;
 
         context.report({
           node,
           messageId: 'flagged',
-          data: { reason: message.reason },
+          data: { reason },
           loc: {
             start: {
               line: baseLine,
-              column: message.position.start.column + columnOffset
+              column: position.start.column + columnOffset
             },
             end: {
               line: baseLine,
-              column: message.position.end.column + columnOffset
+              column: position.end.column + columnOffset
             }
           }
         });
@@ -115,24 +115,23 @@ export const noProblematicLanguageRule: Rule.RuleModule = {
         if (['.md', '.mdx'].includes(extension)) {
           const sourceCode = context.sourceCode;
           const runner = extension === '.md' ? alexMarkdown : alexMDX;
-          const result = runner({ value: sourceCode.text, path: filename }, opts.alexOptions);
+          const { messages } = runner({ value: sourceCode.text, path: filename }, opts.alexOptions);
 
-          for (const message of result.messages) {
-            if (!message.position) continue;
+          for (const { position, reason } of messages) {
+            if (!position) continue;
 
             context.report({
               node: sourceCode.ast,
               messageId: 'flagged',
-              data: { reason: message.reason },
-
+              data: { reason: reason },
               loc: {
                 start: {
-                  line: message.position.start.line,
-                  column: message.position.start.column - 1
+                  line: position.start.line,
+                  column: position.start.column - 1
                 },
                 end: {
-                  line: message.position.end.line,
-                  column: message.position.end.column - 1
+                  line: position.end.line,
+                  column: position.end.column - 1
                 }
               }
             });
