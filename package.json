@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-alex",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "ESLint plugin that integrates alex to surface potentially insensitive wording found in markdown files, comments and strings.",
   "keywords": [
     "eslint",
