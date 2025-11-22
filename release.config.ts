@@ -11,7 +11,7 @@ const rules = [
 const sortMap = Object.fromEntries(rules.map((rule, index) => [rule.title, index]));
 
 const config: GlobalConfig = {
-  repositoryUrl: 'https://github.com/react-native-community/vscode-react-native-directory',
+  repositoryUrl: 'https://github.com/Simek/eslint-plugin-alex',
   branches: ['main'],
   tagFormat: '${version}',
   plugins: [

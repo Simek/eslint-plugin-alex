@@ -59,7 +59,7 @@ To reuse preset:
     {
       "comments": false,
       "ignore": [
-        "README.md"
+        "LICENSE.md"
       ],
       "alexOptions": {
         "profanitySureness": 1

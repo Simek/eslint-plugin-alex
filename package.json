@@ -9,6 +9,7 @@
     "inclusive-language"
   ],
   "author": "Simek",
+  "repository": "github:Simek/eslint-plugin-alex",
   "license": "MIT",
   "type": "commonjs",
   "main": "dist/index.js",
