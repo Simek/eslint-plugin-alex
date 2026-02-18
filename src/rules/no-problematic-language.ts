@@ -1,8 +1,7 @@
-import { text as alexText, markdown as alexMarkdown, mdx as alexMDX, Options as AlexOptions } from 'alex';
-import type { Rule } from 'eslint';
-import type { Comment, Literal, TemplateLiteral, TemplateElement } from 'estree';
-import { extname, normalize, relative, resolve } from 'node:path';
-import micromatch from 'micromatch';
+import { text as alexText, markdown as alexMarkdown, mdx as alexMDX, type Options as AlexOptions } from 'alex';
+import { type Rule } from 'eslint';
+import { type Comment, type Literal, type TemplateLiteral, type TemplateElement } from 'estree';
+import { extname, matchesGlob, normalize, relative, resolve } from 'node:path';
 
 type Options = [
   {
@@ -24,19 +23,10 @@ function toPosix(path: string): string {
   return normalize(path).replaceAll('\\\\', '/').replaceAll('\\', '/');
 }
 
-function isIgnoredFile(filePath: string, patterns?: string[]): boolean {
-  if (!patterns || patterns.length === 0) return false;
-
+function isIgnoredFile(filePath: string, patterns: string[]): boolean {
   const abs = resolve(filePath);
-  const absPosix = toPosix(abs);
   const relFromCwd = toPosix(relative(process.cwd(), abs));
-  const candidates = [absPosix, relFromCwd, relFromCwd.replace(/^\.\//, '')];
-
-  return candidates.some((candidate) =>
-    micromatch.isMatch(candidate, patterns, {
-      dot: true
-    })
-  );
+  return patterns.some((pattern) => matchesGlob(relFromCwd, pattern));
 }
 
 function runAlexText(text: string, filePath: string, alexOptions?: AlexOptions) {
@@ -74,16 +64,17 @@ export const noProblematicLanguageRule: Rule.RuleModule = {
 
   create(context) {
     const filename = toPosix(context.filename);
-    const extension = extname(filename);
 
     const opts: Options[number] = {
       ...defaultOptions,
-      ...(context.options?.[0] ?? {})
+      ...context.options?.[0]
     };
 
-    if (isIgnoredFile(filename, opts.ignore)) {
+    if (opts.ignore && isIgnoredFile(filename, opts.ignore)) {
       return {};
     }
+
+    const extension = extname(filename);
 
     function reportForNode(node: Comment | Literal | TemplateElement, text: string, baseLine = 0, columnOffset = 0) {
       if (!text || !text.trim()) return;
