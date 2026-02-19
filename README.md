@@ -9,7 +9,7 @@ bun install -D eslint-plugin-alex alex
 ```
 
 > [!note]
-> Supports `eslint` v8.56+ or v9+.
+> Supports `eslint` v8.56+, v9 and v10.
 
 ## 🧪 Usage
 
