@@ -41,9 +41,34 @@ describe('alex/no-problematic-language', () => {
     expect(true).toBe(true);
   });
 
-  it('flags problematic words in comments and strings in MD(X) files', () => {
+  it('flags problematic words in comments and strings in MD files', () => {
     const mdxTester = new RuleTester({
-      files: ['**/*.{md,mdx}'],
+      files: ['**/*.md'],
+      languageOptions: {
+        parser: eslintMdx
+      }
+    });
+
+    mdxTester.run('no-problematic-language', rules['no-problematic-language'], {
+      valid: [readFixture('valid.md')],
+      invalid: [
+        {
+          ...readFixture('invalid.md'),
+          errors: [
+            { messageId: 'flagged', line: 1, column: 3, endColumn: 9 },
+            { messageId: 'flagged', line: 3, column: 1, endColumn: 5 },
+            { messageId: 'flagged', line: 5, column: 3, endColumn: 5 }
+          ]
+        }
+      ]
+    });
+
+    expect(true).toBe(true);
+  });
+
+  it('flags problematic words in comments and strings in MDX files', () => {
+    const mdxTester = new RuleTester({
+      files: ['**/*.mdx'],
       languageOptions: {
         parser: eslintMdx
       }
